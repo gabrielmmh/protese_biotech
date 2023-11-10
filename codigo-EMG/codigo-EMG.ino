@@ -57,7 +57,7 @@ int humFreq = NOTCH_FREQ_50HZ;
 // put on the sensors, and release your muscles;
 // wait a few seconds, and select the max value as the threshold;
 // any value under threshold will be set to zero
-static int Threshold = 0;
+static int Threshold = 15000;
 
 unsigned long timeStamp;
 unsigned long timeBudget;
@@ -88,14 +88,14 @@ void loop() {
     int DataAfterFilter = myFilter.update(Value);
 
     int envlope = sq(DataAfterFilter);
-    // any value under threshold will be set to zero
-    envlope = (envlope > Threshold) ? envlope : 0;
+    // if the value is over the threshold, set envlope to 100, otherwise to 0
+    envlope = (envlope > 30000) ? 100 : 0;
 
     timeStamp = micros() - timeStamp;
     if (TIMING_DEBUG) {
         // Serial.print("Read Data: "); Serial.println(Value);
         // Serial.print("Filtered Data: ");Serial.println(DataAfterFilter);
-        Serial.print("Squared Data: \n");
+        Serial.print("Output Value: \n");
         Serial.println(envlope);
         // Serial.print("Filters cost time: "); Serial.println(timeStamp);
         // the filter cost average around 520 us
@@ -104,7 +104,6 @@ void loop() {
     /*------------end here---------------------*/
     // if less than timeBudget, then you still have (timeBudget - timeStamp) to
     // do your work
-    delayMicroseconds(500);
-    // if more than timeBudget, the sample rate need to reduce to
-    // SAMPLE_FREQ_500HZ
+    delayMicroseconds(timeBudget - timeStamp > 0 ? timeBudget - timeStamp : 0);
+    // Adjust the delay to wait until the next sample period if processing was faster than the sample rate
 }
